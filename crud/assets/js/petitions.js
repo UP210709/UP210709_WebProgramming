@@ -10,10 +10,35 @@ export async function getAllTasks(){
     return json;
 }
 
-export async function createTask(newTask){
-    const resp = await fetch("/api/createTask.php",{
-        method: 'POST',
-        body:newTask
+export async function getTask(data){
+    const resp = await fetch("/api/getTask.php", {
+        method: "POST",
+        body: data
+    });
+    const json = await resp.json();
+    return json;
+}
+
+export async function updateTask(data){
+    const resp= await fetch("/api/updateTask.php", {
+        method: "POST",
+        body: data
+    });
+    console.log(await resp.text());
+}
+
+export async function createTask(data){
+    const resp= await fetch("/api/createTask.php", {
+        method: "POST",
+        body: data
+    });
+    console.log(await resp.text());
+}
+
+export async function deleteTask(data){
+    const resp= await fetch("/api/deleteTask.php", {
+        method: "POST",
+        body: data
     });
     console.log(await resp.text());
 }

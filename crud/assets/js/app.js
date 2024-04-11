@@ -6,7 +6,11 @@ const completed = document.getElementById("form-checkbox");
 import {getAllUsers} from "./petitions.js";
 import { getAllTasks } from "./petitions.js";
 import { createTask } from "./petitions.js";
+import { deleteTask } from "./petitions.js";
+import { getTask } from "./petitions.js";
+import { updateTask } from "./petitions.js";
 let createPermission=false;
+let taskID;
 
 
 document.addEventListener('DOMContentLoaded', async()=>{
@@ -37,10 +41,10 @@ document.addEventListener('DOMContentLoaded', async()=>{
                 <label for="checkbox">Completed</label>
             </td>
             <td>
-            <button class="btn btn-secondary btn-sm">
+            <button class="btn btn-secondary btn-sm update" value="${task.id}">
                 <span>Update</span> <i class="nf nf-md-pencil"></i>
             </button>
-            <button class="btn btn-danger btn-sm">
+            <button class="btn btn-danger btn-sm delete" value="${task.id}">
                 <span>Delete</span> <i class="nf nf-cod-trash"></i>
             </button>
             </td>
@@ -48,16 +52,77 @@ document.addEventListener('DOMContentLoaded', async()=>{
         `;
     }
     listTasks.innerHTML=template;
-
+    await getBtns();
 });
 
 
 listUsers.addEventListener("change",async (e)=>{
     createPermission=true;
+    await showTasks();
+    await getBtns();
+});
+
+btnSave.addEventListener("click",async(e)=>{
+    e.preventDefault();
+    const data = new FormData();
+    data.append("Title", title.value);
+    data.append("userId", listUsers.value);
+    data.append("completed", completed.checked);
+    
+    if(btnSave.value=='update'){
+        data.append("id", taskID);
+        await updateTask(data); 
+        await showTasks();
+        btnSave.value="";
+    }
+    else if(title.value!="" && createPermission){
+        
+        await createTask(data);
+        await showTasks();
+    }
+
+    title.innerText = 'Insert task';
+    completed.checked = 0;
+    title.value = '';
+    await getBtns();
+})
+
+async function getBtns() {
+    const deleteBtns = document.querySelectorAll('.delete');
+
+    deleteBtns.forEach(button => {
+
+        button.addEventListener('click', async () => {
+            const data = new FormData();
+            data.append("id", button.value);
+            await deleteTask(data);
+            await showTasks();
+        })
+    });
+
+    const updateBtns = document.querySelectorAll('.update');
+    updateBtns.forEach(button => {
+        button.addEventListener('click', async () => {
+            const data = new FormData();
+            data.append("id", button.value);
+            const task = await getTask(data);
+
+            title.value = task[0].title;
+            completed.checked = (task[0].completed == 1) ? true : false;
+            taskID = task[0].id;
+
+            btnSave.value = 'update';
+
+        })
+    });
+}
+
+
+async function showTasks(){
     const tasks= await getAllTasks();
     let template="";
     for(const task of tasks){
-        if(task.userId==e.target.value){
+        if(task.userId==listUsers.value){
             template += `
             <tr>
                 <td>${task.id}</td>
@@ -68,10 +133,10 @@ listUsers.addEventListener("change",async (e)=>{
                     <label for="checkbox">Completed</label>
                 </td>
                 <td>
-                <button class="btn btn-secondary btn-sm">
+                <button class="btn btn-secondary btn-sm update" value="${task.id}">
                     <span>Update</span> <i class="nf nf-md-pencil"></i>
                 </button>
-                <button class="btn btn-danger btn-sm">
+                <button class="btn btn-danger btn-sm delete" value="${task.id}">
                     <span>Delete</span> <i class="nf nf-cod-trash"></i>
                 </button>
                 </td>
@@ -80,24 +145,5 @@ listUsers.addEventListener("change",async (e)=>{
         }
     }
     listTasks.innerHTML=template;
-});
-
-btnSave.addEventListener("commit",async(e)=>{
-    e.preventDefault();
-  
-    if(title.value!="" && createPermission){
-        const task={
-            Title:title.value,
-            uid:listUsers.value,
-            complete:completed.checked
-        };
-        console.log(task);
-        const res=await createTask(task);
-        console.log(res);
-    }
-    else{
-        console.log("jala");
-    }
-    
-})
-
+    await getBtns();
+}

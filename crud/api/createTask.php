@@ -1,16 +1,15 @@
 <?php
-try{
-   
-    $title=$_POST["Title"];
-    $userID=$_POST["uid"];
-    $completed=($_POST["complete"==true]?1:0);
+include "./partials/connection.php";
+try {
 
-    include './partials/Connection.php';
+    $completed = ($_POST['completed'] == 'true')?1:0;
+    $title=$_POST['Title'];
+    $userId=$_POST['userId'];
 
-    $sql='insert into task(title,idUser,completed) values(`{$title}`,`{$userID}`,`{$completed}`);';
-    $conn->prepare($sql)->execute();
-    echo 'created task';
-}
-catch(PDOException $e){
+    $SQL = "INSERT INTO `task` (`title`, `completed`, `idUser`) VALUES ('{$title}', {$completed}, {$userId});";
+    $conn ->query($SQL);
+    echo "created task";
+
+} catch (PDOException $e) {
     die($e->getMessage());
 }
